@@ -1,0 +1,45 @@
+name: Trigger auto deployment for sourcetocloudbb1114-app2
+
+# When this action will be executed
+on:
+  # Automatically trigger it when detected changes in repo
+  push:
+    branches: 
+      [ daniv/testgha2 ]
+    paths:
+    - '**'
+    - '.github/workflows/sourcetocloudbb1114-app2-AutoDeployTrigger-b4c2f73f-9b22-46bd-a2ac-f641d4e7348e.yml'
+
+  # Allow manual trigger 
+  workflow_dispatch:      
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: 
+      id-token: write #This is required for requesting the OIDC JWT Token
+
+    steps:
+      - name: Checkout to the branch
+        uses: actions/checkout@v2
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.SOURCETOCLOUDBB1114APP2_AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.SOURCETOCLOUDBB1114APP2_AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.SOURCETOCLOUDBB1114APP2_AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build and push container image to registry
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          appSourcePath: ${{ github.workspace }} 
+          registryUrl: 
+          registryUsername: ${{ secrets.SOURCETOCLOUDBB1114APP2_REGISTRY_USERNAME }}
+          registryPassword: ${{ secrets.SOURCETOCLOUDBB1114APP2_REGISTRY_PASSWORD }}
+          containerAppName: sourcetocloudbb1114-app2
+          resourceGroup: sourcetocloudbb1114
+          imageToBuild: default/[parameters('containerAppName')]:${{ github.sha }}
+          
+
+
